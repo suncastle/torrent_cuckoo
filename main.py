@@ -10,7 +10,7 @@ ctr = 0
 href2 = ""
 select = "div.list-board > ul > li > div.wr-subject.ellipsis > a"
 select2 = "div.view-padding > div.view-torrent > table > thead > tr > th > strong"
-analized = open("analized.txt", 'a')
+#analized = open("analized.txt", 'a')
 analizeQueue = []
 HEADERS = {"Authorization": "Bearer dnCxbrPh9NgjiOmFp5XJtg"}
 
@@ -24,7 +24,7 @@ def submitfile(filepath, data=None):
     global analizeQueue
     if os.path.isdir(filepath):
         for path in os.listdir(filepath):
-            path = filepath + "/" + path
+            path = filepath + "/\"" + path + "\""
             submitfile(path)
     elif os.path.isfile(filepath):
         apiurl = buildapiurl(action="/tasks/create/file")
@@ -99,19 +99,20 @@ def download_torrent(main, ctr):
 def submit():
     for contents in qb.torrents.info(status_filter="completed"):
         print(contents)
-        file = contents['save_path'] + contents['name']
+        file = contents['save_path'] + "/\'" + contents['name'] + "/\'"
         if file != '':
             #os.system("cuckoo submit " + "\'" + file + "\'")
             submitfile(file)
             print(file + " submitted")
-            analized.write(contents['name'] + "\t" + contents['hash'])
+            #analized.write(contents['name'] + "\t" + contents['hash'])
             qb.torrents.delete(contents['hash'])
+"""
     for contents in qb.torrents.info(status_filter="completed"):
         for line in analized.readlines():
             if contents['hash'] == line[1]:
                 qb.delete(contents['hash'])
                 return
-
+"""
 tasklen = 0
 for task in taskslist()['tasks']:
     if task['completed_on'] != None:
@@ -126,8 +127,8 @@ def afterSubmit():
             tasklen2 = tasklen2 + 1
     if tasklen < tasklen2:
         for i in range(0, tasklen2 - tasklen):
-            os.system("rm -rf " + str(analizeQueue[0]))
-            print(str(analizeQueue.pop) + "deleted")
+            os.system("rm -rf " + "\"" + str(analizeQueue[0]) + "\"")
+            print("****" + str(analizeQueue.pop()) + " deleted****")
     tasklen = tasklen2
     if getcuckoostatus()['diskspace']['analyses']['free']/getcuckoostatus()['diskspace']['analyses']['total'] < 0.05:
         os.system("cuckoo clean")
