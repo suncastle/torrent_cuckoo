@@ -127,7 +127,7 @@ def afterSubmit():
     if tasklen < tasklen2:
         for i in range(0, tasklen2 - tasklen):
             os.system("rm -rf " + str(analizeQueue[0]))
-            print(str[analizeQueue.pop] + "deleted")
+            print(str(analizeQueue.pop) + "deleted")
     tasklen = tasklen2
     if getcuckoostatus()['diskspace']['analyses']['free']/getcuckoostatus()['diskspace']['analyses']['total'] < 0.05:
         os.system("cuckoo clean")
