@@ -26,7 +26,7 @@ def submitfile(filepath, data=None):
     global analizeQueue
     if os.path.isdir(filepath):
         for path in os.listdir(filepath):
-            path = filepath + "/" + path
+            path = filepath + path + "/"
             submitfile(path)
     elif os.path.isfile(filepath):
         apiurl = buildapiurl(action="/tasks/create/file")
@@ -106,7 +106,7 @@ def download_torrent(main, ctr):
 def submit():
     for contents in qb.torrents.info(status_filter="completed"):
         print(contents)
-        file = contents['save_path'] + "/\"" + contents['name'] + "\""
+        file = contents['save_path'] + contents['name'] 
         if file != '':
             # os.system("cuckoo submit " + "\'" + file + "\'")
             submitfile(file)
