@@ -14,7 +14,6 @@ select2 = "div.view-padding > div.view-torrent > table > thead > tr > th > stron
 analizeQueue = []
 HEADERS = {"Authorization": "Bearer dnCxbrPh9NgjiOmFp5XJtg"}
 
-
 def buildapiurl(proto="http", host="127.0.0.1", port=8090, action=None):
     if action is None:
         return None
@@ -26,7 +25,7 @@ def submitfile(filepath, data=None):
     global analizeQueue
     if os.path.isdir(filepath):
         for path in os.listdir(filepath):
-            path = filepath + path + "/"
+            path = filepath + "\'" + path + "\'/"
             submitfile(path)
     elif os.path.isfile(filepath):
         apiurl = buildapiurl(action="/tasks/create/file")
@@ -35,6 +34,7 @@ def submitfile(filepath, data=None):
             multipart_file = {"file": (os.path.basename(filepath), sample)}
             analizeQueue.append(filepath)
             request = requests.post(apiurl, files=multipart_file, data=data, headers=HEADERS)
+            print(filepath + " submitted")
 
 
 def getcuckoostatus():
@@ -106,11 +106,14 @@ def download_torrent(main, ctr):
 def submit():
     for contents in qb.torrents.info(status_filter="completed"):
         print(contents)
-        file = contents['save_path'] + contents['name'] 
+        file = contents['save_path'] + contents['name']
+        if os.path.isdir(file):
+            file = file + "/"
+
         if file != '':
             # os.system("cuckoo submit " + "\'" + file + "\'")
             submitfile(file)
-            print(file + " submitted")
+
             # analized.write(contents['name'] + "\t" + contents['hash'])
             qb.torrents.delete(contents['hash'])
 
@@ -137,16 +140,17 @@ def afterSubmit():
             tasklen2 = tasklen2 + 1
     if tasklen < tasklen2:
         for i in range(0, tasklen2 - tasklen):
-            os.system("rm -rf " + "\"" + str(analizeQueue[0]) + "\"")
+            os.system("rm -rf " + "\'" + str(analizeQueue[0]) + "\'")
             print("****" + str(analizeQueue.pop()) + " deleted****")
     tasklen = tasklen2
     if getcuckoostatus()['diskspace']['analyses']['free'] / getcuckoostatus()['diskspace']['analyses']['total'] < 0.05:
-        os.system("cuckoo clean")
-
+        #os.system("cuckoo clean")
+        os.system("kill " + os.getpid())
 
 if __name__ == '__main__':
     if "torrents" not in os.listdir():
         os.system("mkdir torrents")
+
     while 1:
         download_torrent("https://torrentqq85.com/torrent/utl.html?page=", ctr)
         submit()
