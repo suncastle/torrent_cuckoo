@@ -10,9 +10,10 @@ ctr = 0
 href2 = ""
 select = "div.list-board > ul > li > div.wr-subject.ellipsis > a"
 select2 = "div.view-padding > div.view-torrent > table > thead > tr > th > strong"
-#analized = open("analized.txt", 'a')
+# analized = open("analized.txt", 'a')
 analizeQueue = []
 HEADERS = {"Authorization": "Bearer dnCxbrPh9NgjiOmFp5XJtg"}
+
 
 def buildapiurl(proto="http", host="127.0.0.1", port=8090, action=None):
     if action is None:
@@ -20,11 +21,12 @@ def buildapiurl(proto="http", host="127.0.0.1", port=8090, action=None):
     else:
         return "{0}://{1}:{2}{3}".format(proto, host, port, action)
 
+
 def submitfile(filepath, data=None):
     global analizeQueue
     if os.path.isdir(filepath):
         for path in os.listdir(filepath):
-            path = filepath + "/\"" + path + "\""
+            path = filepath + "/" + path
             submitfile(path)
     elif os.path.isfile(filepath):
         apiurl = buildapiurl(action="/tasks/create/file")
@@ -34,6 +36,7 @@ def submitfile(filepath, data=None):
             analizeQueue.append(filepath)
             request = requests.post(apiurl, files=multipart_file, data=data, headers=HEADERS)
 
+
 def getcuckoostatus():
     apiurl = buildapiurl(action="/cuckoo/status")
     request = requests.get(apiurl, headers=HEADERS)
@@ -41,12 +44,13 @@ def getcuckoostatus():
     jsonreply = json.loads(request.text)
     return jsonreply
 
+
 def taskslist(limit=None, offset=None):
     baseurl = "/tasks/list"
     if limit is not None:
-        baseurl = baseurl+"/"+str(limit)
+        baseurl = baseurl + "/" + str(limit)
         if offset is not None:
-            baseurl = baseurl+"/"+str(offset)
+            baseurl = baseurl + "/" + str(offset)
 
     apiurl = buildapiurl(action=baseurl)
     request = requests.get(apiurl, headers=HEADERS)
@@ -54,16 +58,18 @@ def taskslist(limit=None, offset=None):
     jsonreply = json.loads(request.text)
     return jsonreply
 
+
 def download(url, file_name):
-    with open(file_name, "wb") as file: # open in binary mode
-        response = requests.get(url) # get request
-        file.write(response.content) # write to file
+    with open(file_name, "wb") as file:  # open in binary mode
+        response = requests.get(url)  # get request
+        file.write(response.content)  # write to file
+
 
 def download_torrent(main, ctr):
     main = main + str(ctr)
     req = requests.get(main)
     html = req.text
-       
+
     soup = bs(html, 'html.parser')
     href = soup.find_all("a", class_="font-13 en")
     for a in href:
@@ -96,16 +102,19 @@ def download_torrent(main, ctr):
             print(name2 + " download start")
         submit()
 
+
 def submit():
     for contents in qb.torrents.info(status_filter="completed"):
         print(contents)
-        file = contents['save_path'] + "/\'" + contents['name'] + "/\'"
+        file = contents['save_path'] + "/\"" + contents['name'] + "\""
         if file != '':
-            #os.system("cuckoo submit " + "\'" + file + "\'")
+            # os.system("cuckoo submit " + "\'" + file + "\'")
             submitfile(file)
             print(file + " submitted")
-            #analized.write(contents['name'] + "\t" + contents['hash'])
+            # analized.write(contents['name'] + "\t" + contents['hash'])
             qb.torrents.delete(contents['hash'])
+
+
 """
     for contents in qb.torrents.info(status_filter="completed"):
         for line in analized.readlines():
@@ -117,6 +126,7 @@ tasklen = 0
 for task in taskslist()['tasks']:
     if task['completed_on'] != None:
         tasklen = tasklen + 1
+
 
 def afterSubmit():
     global tasklen
@@ -130,7 +140,7 @@ def afterSubmit():
             os.system("rm -rf " + "\"" + str(analizeQueue[0]) + "\"")
             print("****" + str(analizeQueue.pop()) + " deleted****")
     tasklen = tasklen2
-    if getcuckoostatus()['diskspace']['analyses']['free']/getcuckoostatus()['diskspace']['analyses']['total'] < 0.05:
+    if getcuckoostatus()['diskspace']['analyses']['free'] / getcuckoostatus()['diskspace']['analyses']['total'] < 0.05:
         os.system("cuckoo clean")
 
 
@@ -142,4 +152,3 @@ if __name__ == '__main__':
         submit()
         afterSubmit()
         ctr = ctr + 1
-
